@@ -1,7 +1,38 @@
+const options = ["rock", "paper", "scissors"];
+
+let userScore, computerScore;
+userScore = computerScore = 0;
+let gameActive = true;
+
+const container = document.querySelector(".container");
+const details = document.querySelector(".game-details");
+const result = document.createElement("div");
+const score = document.createElement("div");
+const winner = document.createElement("div");
+const playAgainButton = document.createElement("button");
+
+playAgainButton.textContent = "Play Again";
+playAgainButton.addEventListener("click", resetGame);
+
 /**
- * Returns the computer's choice
+ * Starts the game of Rock, Paper, Scissors.
+ */
+function playButtonClick() {
+  if (gameActive) {
+    const userChoice = this.value;
+    playRound(userChoice);
+  }
+}
+
+const buttons = document.querySelectorAll("button");
+buttons.forEach((button) => {
+  button.addEventListener("click", playButtonClick);
+});
+
+/**
+ * Returns the computer's choice for the game.
  *
- * @param {Array} options - The list of options.
+ * @param {string[]} options - The list of available options.
  * @returns {string} The computer's choice.
  */
 function getComputerChoice(options) {
@@ -10,79 +41,72 @@ function getComputerChoice(options) {
 }
 
 /**
- * Returns the user's choice
+ * Plays a round of Rock, Paper, Scissors and updates the game state.
  *
- * @param {Array} options - The list of options.
- * @returns {string} The user's choice.
+ * @param {number} userChoice - The user's choice (index of the option).
  */
-function getUserChoice(options) {
-  let choice;
-  do {
-    choice = prompt(
-      "Please select an option (enter number):\n1 - Rock\n2 - Paper\n3 - Scissors"
-    );
-  } while (choice <= 0 || choice >= 4);
-  return options[choice - 1];
-}
+function playRound(userChoice) {
+  let playerSelection = options[userChoice];
+  let computerSelection = getComputerChoice(options);
 
-/**
- * Plays a round of Rock, Paper, Scissors and returns the result.
- *
- * @param {string} playerSelection - The player's chosen option for the round.
- * @param {string} computerSelection  - The computer's chosen option for the round.
- * @returns {string} The result of the round.
- */
-function playRound(playerSelection, computerSelection) {
   if (playerSelection == computerSelection) {
-    console.log("It's a tie!");
-    return "Tie";
+    result.textContent = "It's a tie!";
   } else if (
     (playerSelection == "rock" && computerSelection == "scissors") ||
     (playerSelection == "paper" && computerSelection == "rock") ||
     (playerSelection == "scissors" && computerSelection == "paper")
   ) {
-    console.log("You win! " + playerSelection + " beats " + computerSelection);
-    return "User";
+    result.textContent =
+      "You win! " + playerSelection + " beats " + computerSelection;
+    userScore++;
   } else {
-    console.log("You lose! " + computerSelection + " beats " + playerSelection);
-    return "CPU";
+    result.textContent =
+      "You lose! " + computerSelection + " beats " + playerSelection;
+    computerScore++;
+  }
+
+  container.appendChild(details);
+  score.textContent =
+    "User Score: " + userScore + " / Computer Score: " + computerScore;
+  details.appendChild(result);
+  details.appendChild(score);
+
+  checkWinner();
+}
+
+/**
+ * Checks for a winner and displays the result.
+ * If there is a winner, it provides the option to play again.
+ */
+function checkWinner() {
+  if (userScore == 5 || computerScore == 5) {
+    winner.textContent =
+      userScore == 5 ? "You are the winner!" : "CPU is the winner!";
+    details.appendChild(winner);
+
+    // play again option
+    playAgainButton.style.display = "block";
+    details.appendChild(playAgainButton);
+    gameActive = false;
   }
 }
 
 /**
- * Plays a game of Rock, Paper, Scissors with multiple rounds until a winner is determined.
- * This is determined by winning 5 rounds.
+ * If the player wishes to play again, the game is reset.
  */
-function game() {
-  const options = ["rock", "paper", "scissors"];
-  let userScore, computerScore;
+function resetGame() {
+  // reset scores and clears the result display
   userScore = computerScore = 0;
+  result.textContent = "";
+  score.textContent = "";
+  winner.textContent = "";
 
-  do {
-    const playerSelection = getUserChoice(options);
-    const computerSelection = getComputerChoice(options);
+  playAgainButton.style.display = "none";
+  gameActive = true;
 
-    // may need to come back to this and the playRound() function to simplify
-    let result = playRound(playerSelection, computerSelection);
-    if (result == "User") {
-      userScore++;
-    } else if (result == "CPU") {
-      computerScore++;
-    }
-
-    console.log(
-      "The current score is: User (You) - " +
-        userScore +
-        " / CPU - " +
-        computerScore
-    );
-  } while (userScore != 5 && computerScore != 5);
-
-  if (userScore == 5) {
-    console.log("You are the winner!");
-  } else if (computerScore == 5) {
-    console.log("CPU is the winner!");
-  }
+  // remove existing event listeners and reattach
+  buttons.forEach((button) => {
+    button.removeEventListener("click", playButtonClick);
+    button.addEventListener("click", playButtonClick);
+  });
 }
-
-game();
